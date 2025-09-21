@@ -1,4 +1,4 @@
-// src/pages/CompleteRegistrationPage.js
+
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Container, Title, Paper, TextInput, Button, Alert, Loader } from '@mantine/core';
@@ -12,7 +12,7 @@ function CompleteRegistrationPage() {
     const loginAction = useAuthStore((state) => state.login);
     const fetchUserAction = useAuthStore((state) => state.fetchUser);
 
-    // Oldingi sahifadan `registration_token`ni olamiz
+
     const registrationToken = location.state?.registration_token;
 
     const [loading, setLoading] = useState(false);
@@ -29,7 +29,7 @@ function CompleteRegistrationPage() {
         },
     });
     
-    // Agar token bo'lmasa, kirish sahifasiga qaytaramiz
+
     if (!registrationToken) {
         navigate('/login');
         return <Container><Alert color="red">Ro'yxatdan o'tish tokeni topilmadi. Iltimos, qaytadan urinib ko'ring.</Alert></Container>;
@@ -47,7 +47,7 @@ function CompleteRegistrationPage() {
             if (response.data.status === 'registration_successful') {
                 loginAction({ access: response.data.access, refresh: response.data.refresh });
                 await fetchUserAction();
-                navigate('/profile');
+                navigate('/');
             } else {
                 setError('Noma\'lum xatolik yuz berdi.');
             }

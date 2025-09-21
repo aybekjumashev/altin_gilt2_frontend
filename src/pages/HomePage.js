@@ -10,17 +10,38 @@ function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Pagination va Filtrlash uchun state'lar
+
   const [activePage, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [filters, setFilters] = useState({});
 
-  // useCallback yordamida funksiyani optimallashtiramiz
+  const handleFavoriteToggle = async (listingId, newFavoriteStatus) => {
+
+    setListings(currentListings =>
+      currentListings.map(l =>
+        l.id === listingId ? { ...l, is_favorite: newFavoriteStatus } : l
+      )
+    );
+
+    try {
+      await apiClient.post(`/listings/${listingId}/favorite/`);
+    } catch (err) {
+      console.error("Sevimlilarni o'zgartirishda xatolik:", err);
+
+      setListings(currentListings =>
+        currentListings.map(l =>
+          l.id === listingId ? { ...l, is_favorite: !newFavoriteStatus } : l
+        )
+      );
+    }
+  };
+
+
   const fetchListings = useCallback(async () => {
     setLoading(true);
     setError(null);
 
-    // Filtr obyektidan faqat qiymati bor (bo'sh bo'lmagan) parametrlarni olamiz
+
     const activeFilters = Object.entries(filters)
       .filter(([_, value]) => value !== '' && value !== null && value !== undefined)
       .reduce((obj, [key, value]) => {
@@ -28,7 +49,7 @@ function HomePage() {
         return obj;
       }, {});
 
-    // URL parametrlarini yaratamiz
+
     const params = new URLSearchParams({
       page: activePage,
       ...activeFilters,
@@ -37,12 +58,12 @@ function HomePage() {
     try {
       const response = await apiClient.get(`/listings/?${params}`);
       setListings(response.data.results);
-      
+
       const count = response.data.count;
-      // Backend paginatsiyasida har sahifadagi elementlar sonini bilish kerak.
-      // DRF odatda birinchi javobda bu ma'lumotni bermaydi. Biz uni statik belgilaymiz.
-      // Agar backend har xil sondagi element qaytarsa, bu joyni moslash kerak bo'ladi.
-      const itemsPerPage = 10; 
+
+
+
+      const itemsPerPage = 10;
       setTotalPages(Math.ceil(count / itemsPerPage));
 
     } catch (err) {
@@ -53,19 +74,19 @@ function HomePage() {
     }
   }, [activePage, filters]);
 
-  // `fetchListings` funksiyasi o'zgarganda (ya'ni `activePage` yoki `filters` o'zgarganda)
-  // uni avtomatik chaqiramiz.
+
+
   useEffect(() => {
     fetchListings();
   }, [fetchListings]);
 
-  // ListingFilters komponentidan kelgan yangi filtrlarni qabul qiladigan funksiya
+
   const handleFilterChange = (newFilters) => {
     setPage(1); // Filtr o'zgarganda har doim birinchi sahifaga qaytamiz
     setFilters(newFilters);
   };
 
-  // Xatolik bo'lsa, maxsus xabar ko'rsatamiz
+
   if (error && !loading) {
     return (
       <Container>
@@ -83,13 +104,13 @@ function HomePage() {
       <Title order={2} mb="lg">
         E'lonlar
       </Title>
+
       
-      {/* Filtrlar komponenti */}
       <ListingFilters onFilterChange={handleFilterChange} />
 
-      {/* Yuklanish va Natijalar qismi */}
+      
       {loading ? (
-        // Yuklanish holatida skeletlarni ko'rsatamiz
+
         <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
           {Array.from({ length: 9 }).map((_, index) => (
             <ListingCard key={index} loading={true} />
@@ -98,20 +119,20 @@ function HomePage() {
       ) : (
         <>
           {listings.length === 0 ? (
-            // Agar natija bo'sh bo'lsa
+
             <Center style={{ height: '20vh' }}>
-                <Title order={4} color="dimmed">Sizning qidiruvingiz bo'yicha hech qanday e'lon topilmadi.</Title>
+              <Title order={4} color="dimmed">Sizning qidiruvingiz bo'yicha hech qanday e'lon topilmadi.</Title>
             </Center>
           ) : (
-            // Natijalar mavjud bo'lsa
+
             <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
               {listings.map((listing) => (
-                <ListingCard key={listing.id} listing={listing} />
+                <ListingCard key={listing.id} listing={listing} onFavoriteToggle={handleFavoriteToggle} />
               ))}
             </SimpleGrid>
           )}
 
-          {/* Pagination */}
+          
           <Center mt="xl">
             {totalPages > 1 && (
               <Pagination

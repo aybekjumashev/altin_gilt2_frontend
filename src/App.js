@@ -1,4 +1,4 @@
-// src/App.js
+
 import { Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import CompleteRegistrationPage from './pages/CompleteRegistrationPage';
@@ -7,23 +7,28 @@ import Layout from './components/Layout';
 import HomePage from './pages/HomePage'; // Buni keyingi qadamda yaratamiz
 import ProfilePage from './pages/ProfilePage'; // Buni keyingi qadamda yaratamiz
 import ListingDetailPage from './pages/ListingDetailPage';
+import MessagesPage from './pages/MessagesPage';
+import ListingFormPage from './pages/ListingFormPage'; 
 
 function App() {
   return (
     <Routes>
-      {/* Barcha sahifalar umumiy Layout ichida bo'ladi */}
+      
       <Route element={<Layout />}>
-        {/* Hammaga ochiq sahifalar */}
+        
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/complete-registration" element={<CompleteRegistrationPage />} />
         <Route path="/listings/:id" element={<ListingDetailPage />} />
 
-        {/* Faqat tizimga kirganlar uchun himoyalangan sahifalar */}
+        
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<ProfilePage />} />
-          {/* Kelajakda boshqa himoyalangan sahifalar shu yerga qo'shiladi */}
-          {/* Masalan: <Route path="/listings/new" element={<CreateListingPage />} /> */}
+          <Route path="/listings/new" element={<ListingFormPage />} />
+          <Route path="/messages/:listingId" element={<MessagesPage />} />
+          <Route path="/listings/:id/edit" element={<ListingFormPage />} />
+          
+          
         </Route>
       </Route>
     </Routes>

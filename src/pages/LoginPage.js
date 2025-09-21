@@ -1,7 +1,7 @@
-// src/pages/LoginPage.js
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Title, Paper, TextInput, Button, Center, Alert, Loader } from '@mantine/core';
+import { Container, Title, Paper, TextInput, Button, Center, Alert, Loader, PinInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import apiClient from '../api/axios';
 import useAuthStore from '../store/authStore';
@@ -13,6 +13,7 @@ function LoginPage() {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(false); // ✅ yangi state
 
     const form = useForm({
         initialValues: {
@@ -26,26 +27,24 @@ function LoginPage() {
     const handleSubmit = async (values) => {
         setLoading(true);
         setError(null);
+        setSuccess(false);
         try {
             const response = await apiClient.post('/auth/verify-code/', {
                 code: values.code,
             });
 
-            // Backend javobini tahlil qilamiz
             if (response.data.status === 'login_successful') {
-                // Variant A: Muvaffaqiyatli kirish
+                setSuccess(true); // ✅ border yashil bo‘lsin
                 loginAction({ access: response.data.access, refresh: response.data.refresh });
-                await fetchUserAction(); // Foydalanuvchi ma'lumotlarini yuklaymiz
-                navigate('/profile'); // Profil sahifasiga o'tkazamiz
+                await fetchUserAction();
+                navigate('/');
             } else if (response.data.status === 'registration_required') {
-                // Variant B: Registratsiya talab qilinadi
                 navigate('/complete-registration', {
                     state: { registration_token: response.data.registration_token },
                 });
             } else {
-                 setError('Noma\'lum javob. Backend bilan bog\'laning.');
+                setError('Noma\'lum javob. Backend bilan bog\'laning.');
             }
-
         } catch (err) {
             setError(err.response?.data?.detail || 'Kod xato yoki eskirgan.');
             console.error(err);
@@ -57,13 +56,24 @@ function LoginPage() {
     return (
         <Container size={420} my={40}>
             <Title align="center">Kirish</Title>
+            <Center mt="md">
+                <p><a href='tg://resolve?domain=altingilt_loginbot'>@altingilt_loginbot</a> telegram boti orqali kod oling.</p>
+            </Center>
             <Paper withBorder shadow="md" p={30} mt={30} radius="md">
                 <form onSubmit={form.onSubmit(handleSubmit)}>
-                    <TextInput
-                        label="Telegramdan kelgan kod"
-                        placeholder="123456"
+                    <PinInput
+                        size="xl"
+                        length={6}
+                        type="number"
                         required
                         {...form.getInputProps('code')}
+                        onComplete={(value) => handleSubmit({ code: value })}
+                        error={!!error} // ❌ xato bo‘lsa qizil border
+                        styles={{
+                            input: {
+                                borderColor: success ? 'green' : undefined, // ✅ success bo‘lsa yashil
+                            },
+                        }}
                     />
 
                     {error && (
@@ -72,16 +82,16 @@ function LoginPage() {
                         </Alert>
                     )}
 
-                    <Button type="submit" fullWidth mt="xl" disabled={loading}>
-                        {loading ? <Loader size="sm" /> : "Kirish"}
-                    </Button>
+                    {loading && (
+                        <Center mt="md">
+                            <Loader size="sm" />
+                        </Center>
+                    )}
                 </form>
             </Paper>
-            <Center mt="md">
-                <p>Telegram botimiz orqali kod oling.</p>
-            </Center>
         </Container>
     );
 }
+
 
 export default LoginPage;
